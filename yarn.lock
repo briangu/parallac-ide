@@ -482,8 +482,8 @@ options@>=0.0.5:
   resolved "https://registry.yarnpkg.com/options/-/options-0.0.6.tgz#ec22d312806bb53e731773e7cdaefcf1c643128f"
 
 parallac.js@latest:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/parallac.js/-/parallac.js-0.0.5.tgz#861aa3b655c310ce0c9c76e4d33d75c5a9cb06c9"
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/parallac.js/-/parallac.js-0.0.6.tgz#28262d14fed7ef1f5752ddc908d6dd93fe6a41d7"
   dependencies:
     express "^4.14.0"
     requestify "^0.2.4"

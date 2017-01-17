@@ -1,0 +1,3 @@
+[submodule "parallac.js"]
+	path = parallac.js
+	url = https://github.com/briangu/parallac.js.git
