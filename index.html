@@ -93,7 +93,7 @@ function point(x, y, color){
     console.log.apply(null, JSON.parse(data.args));
   });
   socket.on('writeFn', function(data){
-    console.log("writeFn", data);
+    // console.log("writeFn", data);
     var fn = eval(data.fn);
     fn.apply(null, JSON.parse(data.args));
   });
