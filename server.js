@@ -1,10 +1,14 @@
+'use strict';
+
 var app = require('express')()
 var http = require('http').Server(app)
 var io = require('socket.io')(http)
 var parallac = require('parallac.js/lib/parallac')
+var run = parallac.run
 var uuid = require('uuid')
+var fs = require('fs')
 
-var debug = () => { }
+var debug = () => {}
 var error = console.log
 var info = console.log
 
@@ -32,10 +36,27 @@ function startServer(config) {
   const port = config.port || 8080;
 
   http.listen(port, function () {
-    info('listening on *:'+port)
+    info('listening on *:' + port)
   })
 
   io.on('connection', function (socket) {
+
+    function writeLambdaFn(data) {
+      socket.emit("writeFn", data)
+    }
+
+    function writeLogFn(data) {
+      socket.emit("writeln", data)
+    }
+
+    let options = {
+      localeConfig: {
+        remote: {
+          writeLambdaFn: writeLambdaFn,
+          writeLogFn: writeLogFn
+        }
+      }
+    }
 
     function reportRequestError(req, err) {
       socket.emit('error', {
@@ -48,16 +69,33 @@ function startServer(config) {
       error("error", data)
     })
 
-    socket.on('connect', function (data) {
-      debug("connect", data)
+      var code = fs.readFileSync("default.js", 'utf8')
+      info("connect", "code", code)
+      socket.emit('code', {
+        code: code
+      })
+
+    socket.on('connected', function (data) {
+      info("connect", data)
+      var code = fs.readFileSync("default.js", 'utf8')
+      info("connect", "code", code)
+      socket.emit('code', {
+        code: code
+      })
     })
 
     socket.on('disconnect', function (data) {
-      debug("disconnect")
+      info("disconnect")
     })
 
     socket.on('run', function (data) {
-      console.log("run", data)
+      // console.log("run", data, JSON.parse(data.code))
+      let fnString = JSON.parse(data.code)
+      let fn = eval(fnString)
+      run(fn, options)
+        .then((result) => {
+          // console.log("result", result)
+        })
     })
   })
 }
