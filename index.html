@@ -100,7 +100,7 @@ function point(x, y, color){
 
   $( "#form-run" ).submit(function( event ) {
     event.preventDefault();
-    var code = "() => " + editor.getValue();
+    var code = "() => {" + editor.getValue() + "}";
     var data = {
       code: JSON.stringify(code)
     };
