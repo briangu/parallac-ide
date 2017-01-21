@@ -1,15 +1,41 @@
-let drawPoint = (x, y, color) => point(x + canvasMidX, y + canvasMidY, color)
 let clearCanvas = () => clear()
 
 writeFn(clearCanvas)
 
-let colorIdx = 0
+let localeIds = Locales.map((locale) => locale.id)
+writeln("Locales: ", localeIds)
 
-for (let x = -50; x < 50; x += 10) {
-  for (let y = -50; y < 50; y += 10) {
-    let color = colorIdx % 2 === 0 ? "red" : "blue"
-    writeFn(drawPoint, x, y, color)
+let colors = [
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "blue",
+  "indigo",
+  "violet"
+]
+
+// TODO: accumulate calls if we can
+let calls = []
+
+let pointIdx = 0
+
+for (let x = -100; x < 100; x += 8) {
+  for (let y = -100; y < 100; y += 8) {
+    let localeId = pointIdx++ % Locales.length
+    // writeln("on ", localeId, Locales[localeId].id)
+    calls.push(on(Locales[localeId])
+      .with({
+        x: x,
+        y: y,
+        colors: colors
+      })
+      .do(() => {
+        // writeln("drawing from locale: ", here.id)
+        let drawPoint = (x, y, color) => point(x + canvasMidX, y + canvasMidY, color)
+        writeFn(drawPoint, x, y, colors[here.id % colors.length])
+      }))
   }
-
-  colorIdx++
 }
+
+return Promise.all(calls);

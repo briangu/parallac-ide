@@ -24,7 +24,7 @@
 
     #editor {
         /** Setting height is also important, otherwise editor wont showup**/
-        height: 75%;
+        height: 100%;
         position: absolute;
         /*top: 300px;*/
         width: 50%;
@@ -86,7 +86,9 @@ function point(x, y, color){
   socket.on('disconnect', function(){});
   socket.on('code', function (data) {
     console.log('code', data);
-    editor.setValue(data.code);
+    if (editor.getValue().length === 0) {
+      editor.setValue(data.code);
+    }
   });
   socket.on('writeln', function(data){
     // console.log("writeln", data);
@@ -100,7 +102,7 @@ function point(x, y, color){
 
   $( "#form-run" ).submit(function( event ) {
     event.preventDefault();
-    var code = "() => {" + editor.getValue() + "}";
+    var code = "() => { " + editor.getValue() + "}";
     var data = {
       code: JSON.stringify(code)
     };
