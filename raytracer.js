@@ -305,8 +305,8 @@ var scene = {
 };
 
 // TODO: can we get the size from the browser w/ a kind of "readFn"?
-var width = 640;
-var height = 480;
+var width = 480;
+var height = 360;
 
 var time = (new Date()).getTime();
 writeln("started at " + time + " with w=" + width + ", h=" + height);
