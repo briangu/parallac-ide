@@ -24,7 +24,7 @@
 
     #editor {
         /** Setting height is also important, otherwise editor wont showup**/
-        height: 100%;
+        height: 95%;
         position: absolute;
         /*top: 300px;*/
         width: 50%;
@@ -65,6 +65,9 @@ var canvasHeight = canvas.height;
 var canvasMidX = canvasWidth / 2;
 var canvasMidY = canvasHeight / 2;
 var ctx = canvas.getContext("2d");
+</script>
+
+<script>
 
 function clear() {
   console.log("clear");
@@ -77,6 +80,16 @@ function point(x, y, color){
   ctx.strokeRect(x,y,1,1);
   ctx.strokeStyle = '#000000';
 }
+
+function putImageData(id, x, y) {
+  var cid = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+  console.log(cid);
+  for (var i = 0; i < id.data.length; i++) {
+    cid.data[i] = id.data[i];
+  }
+  ctx.putImageData(cid, x, y);
+}
+
 </script>
 
 <script src="/socket.io/socket.io.js"></script>

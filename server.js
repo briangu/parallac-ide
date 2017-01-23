@@ -15,6 +15,8 @@ var info = console.log
 function startServer(config) {
   info("hello")
 
+  var codeFile = config.codeFile || "default.js"
+
   app.get('/', function (req, res) {
     res.sendFile('index.html', { root: __dirname });
   })
@@ -40,6 +42,12 @@ function startServer(config) {
   })
 
   io.on('connection', function (socket) {
+
+    var code = fs.readFileSync(codeFile, 'utf8')
+    info("connect", "code", code)
+    socket.emit('code', {
+      code: code
+    })
 
     function writeLambdaFn(data) {
       socket.emit("writeFn", data)
@@ -69,20 +77,14 @@ function startServer(config) {
       error("error", data)
     })
 
-      var code = fs.readFileSync("default.js", 'utf8')
-      info("connect", "code", code)
-      socket.emit('code', {
-        code: code
-      })
-
-    socket.on('connected', function (data) {
-      info("connect", data)
-      var code = fs.readFileSync("default.js", 'utf8')
-      info("connect", "code", code)
-      socket.emit('code', {
-        code: code
-      })
-    })
+    // socket.on('connected', function (data) {
+    //   info("connect", data)
+    //   var code = fs.readFileSync(codeFile, 'utf8')
+    //   info("connect", "code", code)
+    //   socket.emit('code', {
+    //     code: code
+    //   })
+    // })
 
     socket.on('disconnect', function (data) {
       info("disconnect")
@@ -93,11 +95,13 @@ function startServer(config) {
       let fnString = JSON.parse(data.code)
       let fn = eval(fnString)
       run(fn, options)
-        .then((result) => {
-          // console.log("result", result)
-        })
+        // .then((result) => {
+        //   // console.log("result", result)
+        // })
     })
   })
 }
 
-startServer({})
+startServer({
+  codeFile: process.argv[2]
+})
