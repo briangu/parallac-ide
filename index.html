@@ -65,6 +65,7 @@ var canvasHeight = canvas.height;
 var canvasMidX = canvasWidth / 2;
 var canvasMidY = canvasHeight / 2;
 var ctx = canvas.getContext("2d");
+var cid = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
 </script>
 
 <script>
@@ -82,12 +83,26 @@ function point(x, y, color){
 }
 
 function putImageData(id, x, y) {
-  var cid = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-  console.log(cid);
+  // var cid = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+  // console.log(cid);
   for (var i = 0; i < id.data.length; i++) {
     cid.data[i] = id.data[i];
   }
   ctx.putImageData(cid, x, y);
+}
+
+function drawPixel(pos, r, g, b, a) {
+  // console.log("drawPixel", pos, r, g, b, a);
+  var offset = pos * 4;
+  cid.data[offset + 0] = r;
+  cid.data[offset + 1] = g;
+  cid.data[offset + 2] = b;
+  cid.data[offset + 3] = a;
+  // ctx.putImageData(cid, 0, 0);
+}
+
+function flushImage() {
+  ctx.putImageData(cid, 0, 0);
 }
 
 </script>

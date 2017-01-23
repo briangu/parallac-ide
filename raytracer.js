@@ -3,6 +3,8 @@
 // var writeln = console.log;
 // var writeFn = console.log;
 let putImageData = (id, x, y) => putImageData(id, x, y);
+let drawPixel = (pos, r, g, b, a) => drawPixel(pos, r, g, b, a);
+let flushImage = () => flushImage()
 
 var JayTracer = {
   vectorAdd: function (v1, v2) {
@@ -86,31 +88,53 @@ var JayTracer = {
     // if (ctx.createImageData) id = ctx.createImageData(width, height);
     // else if (ctx.getImageData) id = ctx.getImageData(0, 0, width, height);
     // else id = { 'width': width, 'height': height, 'data': new Array(w * h * 4) };
-    var id = { 'width': width, 'height': height, 'data': new Array(width * height * 4) };
-    var pix = id.data;
-    var aspectRatio = width / height;
-    var calls = []
-    for (var i = 0, n = pix.length, j = 1; i < n; i += 4) {
-      var y = Math.floor(j / width);
-      var x = (j % width) + 1;
-      var yRec = (-y / height) + 0.5;
-      var xRec = ((x / width) - 0.5) * aspectRatio;
-      var chans = this.plotPixel(scene, xRec, yRec);
-      // writeFn(drawPoint, Math.floor(chans[0] * 255), Math.floor(chans[1] * 255), Math.floor(chans[2] * 255), 255)
-      pix[i + 0] = Math.floor(chans[0] * 255);
-      pix[i + 1] = Math.floor(chans[1] * 255);
-      pix[i + 2] = Math.floor(chans[2] * 255);
-      pix[i + 3] = 255;
-      j++;
-      // XXX note that here we can line by line (or even pixel by pixel) if we want to,
-      //     it should be an option that one can chose as it provides better feedback for
-      //     long renders
+    // var id = { 'width': width, 'height': height, 'data': new Array(width * height * 4) };
+    // var pix = id.data;
+
+    const aspectRatio = width / height;
+
+    var calls = [];
+    var pos = 0;
+
+    writeln("Hello")
+
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var yRec = (-y / height) + 0.5;
+        var xRec = ((x / width) - 0.5) * aspectRatio;
+        calls.push(this.plotPixel(scene, pos, xRec, yRec)
+          .then((results) => {
+            var pos = results.pos;
+            var chans = results.chans;
+            // var pix = new Array(4);
+            // pix[0] = Math.floor(chans[0] * 255);
+            // pix[1] = Math.floor(chans[1] * 255);
+            // pix[2] = Math.floor(chans[2] * 255);
+            // pix[3] = 255;
+
+            writeFn(drawPixel, pos, Math.floor(chans[0] * 255), Math.floor(chans[1] * 255), Math.floor(chans[2] * 255), 255)
+          }))
+        pos++
+      }
     }
-    // ctx.putImageData(id, 0, 0);
-    writeFn(putImageData, id, 0, 0)
+
+    return Promise.all(calls)
+    // return Promise.all(calls)
+    //   .then((results) => {
+    //     const dataLength = width * height * 4;
+    //     var pix = new Array(dataLength)
+    //     for (var i = 0, j = 0; i < results.length; j += 4) {
+    //       var subPix = results[i]
+    //       pix[j + 0] = subPix[0]
+    //       pix[j + 1] = subPix[1]
+    //       pix[j + 2] = subPix[2]
+    //       pix[j + 3] = subPix[3]
+    //     }
+    //     writeFn(putImageData, { data: pix }, 0, 0)
+    //   })
   },
 
-  plotPixel: function (scene, x, y) {
+  plotPixel: function (scene, pos, x, y) {
     var cam = scene.camera;
     var raySrc = cam.position;
     var rayDir = this.vectorNormalise(
@@ -124,7 +148,10 @@ var JayTracer = {
       if (chans[i] < 0) chans[i] = 0;
       else if (chans[i] > 1) chans[i] = 1;
     }
-    return chans;
+    return Promise.resolve({
+      pos: pos,
+      chans: chans
+    })
   },
   shapeIntersect: function (start, dir, shape) {
     switch (shape.type) {
@@ -304,6 +331,9 @@ var width = 300;
 var height = 300;
 var time = (new Date()).getTime();
 writeln("started at " + time + " with w=" + width + ", h=" + height);
-JayTracer.writeImage(scene, width, height)
-time = (new Date()).getTime() - time;
-writeln("time taken: " + time + "ms");
+return JayTracer.writeImage(scene, width, height)
+  .then(() => writeFn(flushImage))
+  .then(() => {
+    var newTime = (new Date()).getTime() - time;
+    writeln("time taken: " + time + "ms");
+  })
