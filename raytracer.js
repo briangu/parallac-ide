@@ -70,24 +70,9 @@ var JayTracer = {
     return res;
   },
 
-  // buildCanvas: function (parent, width, height) {
-  //   var can = GLOBAL.document.createElement("canvas");
-  //   can.width = width;
-  //   can.height = height;
-  //   parent.appendChild(can);
-  //   return can.getContext("2d");
-  // },
-  // traceTo: function (parent, width, height, scene) {
-  //   var ctx = this.buildCanvas(parent, width, height);
-  //   this.writeImage(scene, ctx, width, height);
-  // },
-
   writeImage: function (scene, width, height) {
     this.prepareScene(scene);
-    // var id;
-    // if (ctx.createImageData) id = ctx.createImageData(width, height);
-    // else if (ctx.getImageData) id = ctx.getImageData(0, 0, width, height);
-    // else id = { 'width': width, 'height': height, 'data': new Array(w * h * 4) };
+
     var id = { 'width': width, 'height': height, 'data': new Array(width * height * 4) };
     var pix = id.data;
 
@@ -120,18 +105,6 @@ var JayTracer = {
 
     return Promise.all(calls)
       .then(() => writeFn(putImageData, id, 0, 0))
-    //   .then((results) => {
-    //     const dataLength = width * height * 4;
-    //     var pix = new Array(dataLength)
-    //     for (var i = 0, j = 0; i < results.length; j += 4) {
-    //       var subPix = results[i]
-    //       pix[j + 0] = subPix[0]
-    //       pix[j + 1] = subPix[1]
-    //       pix[j + 2] = subPix[2]
-    //       pix[j + 3] = subPix[3]
-    //     }
-    //     writeFn(putImageData, { data: pix }, 0, 0)
-    //   })
   },
 
   plotPixel: function (scene, pos, pix, x, y) {
@@ -153,7 +126,7 @@ var JayTracer = {
     pix[offset + 0] = Math.floor(chans[0] * 255)
     pix[offset + 1] = Math.floor(chans[1] * 255)
     pix[offset + 2] = Math.floor(chans[2] * 255)
-    pix[offset + 3] = 255; //chans[3]
+    pix[offset + 3] = 255;
 
     return Promise.resolve()
   },
