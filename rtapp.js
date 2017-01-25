@@ -1,6 +1,59 @@
 // This is based on: http://berjon.com/jaytracer-js-raytracer/
 
-var JayTracer = require('./parallac.js/lib/raytracer')
+// var writeln = console.log
+// var writeFn = console.log
+// var on = () => {
+//   return {
+//     with: function () { return this },
+//     do: function () { return Promise.resolve() }
+//   }
+// }
+
+var JayTracer = require('./raytracer')
+
+function plotPixel(scene, pos, pix, x, y) {
+  let shard = Math.floor(Math.abs(x) * 255) % Locales.length
+  return on(Locales[shard])
+    .with({
+      scene: scene,
+      x: x,
+      y: y
+    })
+    .do(() => {
+      let JayTracer = require('./lib/raytracer')
+      return JayTracer.computePixel(scene, x, y)
+    })
+    .then((chans) => {
+      const offset = pos * 4;
+      pix[offset + 0] = Math.floor(chans[0] * 255)
+      pix[offset + 1] = Math.floor(chans[1] * 255)
+      pix[offset + 2] = Math.floor(chans[2] * 255)
+      pix[offset + 3] = 255;
+    })
+}
+
+function writeImage(scene, width, height) {
+  JayTracer.prepareScene(scene);
+
+  const id = { 'width': width, 'height': height, 'data': new Array(width * height * 4) };
+  const pix = id.data;
+  const aspectRatio = width / height;
+
+  const calls = [];
+  let pos = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const yRec = (-y / height) + 0.5;
+      const xRec = ((x / width) - 0.5) * aspectRatio;
+      calls.push(plotPixel(scene, pos, pix, xRec, yRec))
+      pos++
+    }
+  }
+
+  return Promise.all(calls)
+    .then(() => writeFn(JayTracer.putImageData, id, 0, 0))
+}
 
 let scene = {
   background: [0, 0, 0],
@@ -55,7 +108,7 @@ let height = 360;
 
 let time = (new Date()).getTime();
 writeln("started at " + time + " with w=" + width + ", h=" + height);
-return JayTracer.writeImage(scene, width, height)
+return writeImage(scene, width, height)
   .then(() => {
     let newTime = (new Date()).getTime() - time;
     writeln("time taken: " + time + "ms");

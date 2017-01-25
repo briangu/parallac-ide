@@ -3,7 +3,7 @@
 // let writeln = console.log;
 // let writeFn = console.log;
 
-let JayTracer = {
+module.exports = {
   putImageData: (id, x, y) => putImageData(id, x, y),
   drawPixel: (pos, r, g, b, a) => drawPixel(pos, r, g, b, a),
   flushImage: () => flushImage(),
@@ -70,62 +70,24 @@ let JayTracer = {
     }
     return res;
   },
-
-  plotPixel: function (scene, pos, pix, x, y) {
-    let shard = x % Locales.length
-    return on(Locales[shard])
-      .with({
-        scene: scene,
-        x: x,
-        y: y
-      })
-      .do(() => {
-        let JayTracer = require('./lib/raytracer')
-        let cam = scene.camera;
-        let raySrc = cam.position;
-        let rayDir = JayTracer.vectorNormalise(
-          JayTracer.vectorAdd(
-            cam.forward,
-            JayTracer.vectorAdd(JayTracer.vectorScale(cam.right, x), JayTracer.vectorScale(cam.up, y))
-          )
-        );
-        let chans = JayTracer.traceRay(scene, raySrc, rayDir, null, 1);
-        for (let i = 0; i < chans.length; i++) {
-          if (chans[i] < 0) chans[i] = 0;
-          else if (chans[i] > 1) chans[i] = 1;
-        }
-        return chans
-      })
-      .then((chans) => {
-        const offset = pos * 4;
-        pix[offset + 0] = Math.floor(chans[0] * 255)
-        pix[offset + 1] = Math.floor(chans[1] * 255)
-        pix[offset + 2] = Math.floor(chans[2] * 255)
-        pix[offset + 3] = 255;
-      })
+  computeRayDir: function(cam, x, y) {
+    return this.vectorNormalise(
+      this.vectorAdd(
+        cam.forward,
+        this.vectorAdd(this.vectorScale(cam.right, x), this.vectorScale(cam.up, y))
+      )
+    );
   },
-
-  writeImage: function (scene, width, height) {
-    JayTracer.prepareScene(scene);
-
-    const id = { 'width': width, 'height': height, 'data': new Array(width * height * 4) };
-    const pix = id.data;
-    const aspectRatio = width / height;
-
-    const calls = [];
-    let pos = 0;
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const yRec = (-y / height) + 0.5;
-        const xRec = ((x / width) - 0.5) * aspectRatio;
-        calls.push(plotPixel(scene, pos, pix, xRec, yRec))
-        pos++
-      }
+  computePixel: function (scene, x, y) {
+    let cam = scene.camera;
+    let raySrc = cam.position;
+    let rayDir = this.computeRayDir(cam, x, y);
+    let chans = this.traceRay(scene, raySrc, rayDir, null, 1);
+    for (let i = 0; i < chans.length; i++) {
+      if (chans[i] < 0) chans[i] = 0;
+      else if (chans[i] > 1) chans[i] = 1;
     }
-
-    return Promise.all(calls)
-      .then(() => writeFn(this.putImageData, id, 0, 0))
+    return chans;
   },
 
   shapeIntersect: function (start, dir, shape) {
